@@ -14,10 +14,10 @@ mobile-filter-backend/
 │
 ├── config/
 │   ├── database.js              # MySQL connection pool
-│   └── redis.js                 # Redis cache client
+│   └── redis.js                 
 │
 ├── database/
-│   ├── schema.sql               # All 8 MySQL tables
+│   ├── schema.sql               #allows sql tables
 │   └── seed.js                  # Sample mobile data
 │
 ├── middlewares/
