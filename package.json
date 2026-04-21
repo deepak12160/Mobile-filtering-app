@@ -1,6 +1,9 @@
 {
   "type": "module"
 }
+"engines": {
+  "node": ">=18"
+}
 {
   "name": "mobile-filter-backend",
   "version": "1.0.0",
