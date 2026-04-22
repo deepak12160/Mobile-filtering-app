@@ -13,6 +13,7 @@ import { errorHandler, notFound } from './middlewares/error.middleware.js';
 
 import authRoutes from './routes/auth.routes.js';
 import mobileRoutes from './routes/mobile.routes.js';
+import storefrontRoutes from './routes/storefront.routes.js';
 import userRoutes from './routes/user.routes.js';
 
 dotenv.config();
@@ -67,6 +68,7 @@ app.get('/health', (req, res) => {
 // ── API Routes ───────────────────────────────────────────────
 app.use('/api/auth',    authRoutes);
 app.use('/api/mobiles', mobileRoutes);
+app.use('/api/storefront', storefrontRoutes);
 app.use('/api/users',   userRoutes);
 
 app.get('/', (req, res) => {

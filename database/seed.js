@@ -1,108 +1,63 @@
-import dotenv from 'dotenv';
-import { pool } from '../config/database.js';
 
-dotenv.config();
+require('dotenv').config();
+const { pool } = require('../config/database');
 
-const phones = [
+const mobiles = [
   {
     brand: 'Samsung',
     model: 'Galaxy S24 Ultra',
-    platform: 'Android 14',
-    displayType: 'AMOLED',
-    processor: {
-      name: 'Snapdragon 8 Gen 3',
-      manufacturer: 'Qualcomm',
-      coreCount: 8,
-      processNodeNm: 4,
-    },
-    phone: {
-      screenSize: 6.8,
-      refreshRate: 120,
-      batteryCapacity: 5000,
-      fastCharge: 45,
-      wirelessCharge: 1,
-      specScore: 96,
-      userRating: 4.8,
-    },
-    variant: {
-      ram: 12,
-      storage: 256,
-      price: 134999,
-    },
-    cameras: [
-      { placement: 'rear', lensType: 'primary', megapixels: 200, ois: 1 },
-      { placement: 'front', lensType: 'selfie', megapixels: 12, ois: 0 },
-    ],
+    price: 134999,
+    ram: 12,
+    storage: 256,
+    battery: 5000,
+    charging: 45,
+    wirelessCharging: 15,
+    os: 'Android 14',
+    colors: ['Titanium Black', 'Titanium Gray'],
+    imageUrl: 'https://images.example.com/s24-ultra.jpg',
+    display: { size: 6.8, refresh: 120, type: 'AMOLED', resolution: '3120x1440', brightness: 2600, hdr: 1 },
+    processor: { name: 'Snapdragon 8 Gen 3', manufacturer: 'Qualcomm', cores: 8, node: 4 },
+    camera: { rear: 200, ultraWide: 12, telephoto: 50, front: 12, rearCount: 4, ois: 1, rearAperture: 'f/1.7', frontAperture: 'f/2.2', video: '8K' },
+    storageType: 'UFS 4.0',
+    ramType: 'LPDDR5X',
   },
   {
     brand: 'Apple',
     model: 'iPhone 15 Pro Max',
-    platform: 'iOS 17',
-    displayType: 'OLED',
-    processor: {
-      name: 'A17 Pro',
-      manufacturer: 'Apple',
-      coreCount: 6,
-      processNodeNm: 3,
-    },
-    phone: {
-      screenSize: 6.7,
-      refreshRate: 120,
-      batteryCapacity: 4441,
-      fastCharge: 27,
-      wirelessCharge: 1,
-      specScore: 94,
-      userRating: 4.7,
-    },
-    variant: {
-      ram: 8,
-      storage: 256,
-      price: 159900,
-    },
-    cameras: [
-      { placement: 'rear', lensType: 'primary', megapixels: 48, ois: 1 },
-      { placement: 'front', lensType: 'selfie', megapixels: 12, ois: 0 },
-    ],
+    price: 159900,
+    ram: 8,
+    storage: 256,
+    battery: 4441,
+    charging: 27,
+    wirelessCharging: 15,
+    os: 'iOS 17',
+    colors: ['Black Titanium', 'Natural Titanium'],
+    imageUrl: 'https://images.example.com/iphone-15-pro-max.jpg',
+    display: { size: 6.7, refresh: 120, type: 'OLED', resolution: '2796x1290', brightness: 2000, hdr: 1 },
+    processor: { name: 'A17 Pro', manufacturer: 'Apple', cores: 6, node: 3 },
+    camera: { rear: 48, ultraWide: 12, telephoto: 12, front: 12, rearCount: 3, ois: 1, rearAperture: 'f/1.8', frontAperture: 'f/1.9', video: '4K' },
+    storageType: 'NVMe',
+    ramType: 'LPDDR5',
   },
   {
     brand: 'OnePlus',
     model: '12',
-    platform: 'Android 14',
-    displayType: 'AMOLED',
-    processor: {
-      name: 'Snapdragon 8 Gen 3',
-      manufacturer: 'Qualcomm',
-      coreCount: 8,
-      processNodeNm: 4,
-    },
-    phone: {
-      screenSize: 6.82,
-      refreshRate: 120,
-      batteryCapacity: 5400,
-      fastCharge: 100,
-      wirelessCharge: 1,
-      specScore: 91,
-      userRating: 4.6,
-    },
-    variant: {
-      ram: 12,
-      storage: 256,
-      price: 64999,
-    },
-    cameras: [
-      { placement: 'rear', lensType: 'primary', megapixels: 50, ois: 1 },
-      { placement: 'front', lensType: 'selfie', megapixels: 32, ois: 0 },
-    ],
+    price: 64999,
+    ram: 12,
+    storage: 256,
+    battery: 5400,
+    charging: 100,
+    wirelessCharging: 50,
+    os: 'Android 14',
+    colors: ['Flowy Emerald', 'Silky Black'],
+    imageUrl: 'https://images.example.com/oneplus-12.jpg',
+    display: { size: 6.82, refresh: 120, type: 'AMOLED', resolution: '3168x1440', brightness: 4500, hdr: 1 },
+    processor: { name: 'Snapdragon 8 Gen 3', manufacturer: 'Qualcomm', cores: 8, node: 4 },
+    camera: { rear: 50, ultraWide: 48, telephoto: 64, front: 32, rearCount: 3, ois: 1, rearAperture: 'f/1.6', frontAperture: 'f/2.4', video: '8K' },
+    storageType: 'UFS 4.0',
+    ramType: 'LPDDR5X',
   },
 ];
-
-const getOrCreateId = async (conn, selectSql, insertSql, selectParams, insertParams = selectParams) => {
-  const [existingRows] = await conn.execute(selectSql, selectParams);
-  if (existingRows.length) return existingRows[0].id;
-
-  const [result] = await conn.execute(insertSql, insertParams);
-  return result.insertId;
-};
 
 const seed = async () => {
   const conn = await pool.getConnection();
@@ -112,6 +67,14 @@ const seed = async () => {
 
     await conn.query('DELETE FROM user_wishlist');
     await conn.query('DELETE FROM refresh_tokens');
+
+    await conn.query('DELETE FROM battery');
+    await conn.query('DELETE FROM display');
+    await conn.query('DELETE FROM ram');
+    await conn.query('DELETE FROM storage');
+    await conn.query('DELETE FROM cameras');
+    await conn.query('DELETE FROM mobiles');
+
     await conn.query('DELETE FROM phone_cameras');
     await conn.query('DELETE FROM phone_variants');
     await conn.query('DELETE FROM phones');
@@ -119,79 +82,131 @@ const seed = async () => {
     await conn.query('DELETE FROM display_tech');
     await conn.query('DELETE FROM processors');
     await conn.query('DELETE FROM brands');
-    await conn.query('DELETE FROM users');
 
-    for (const entry of phones) {
-      const brandId = await getOrCreateId(
-        conn,
-        'SELECT id FROM brands WHERE name = ?',
-        'INSERT INTO brands (name) VALUES (?)',
-        [entry.brand]
-      );
-
-      const processorId = await getOrCreateId(
-        conn,
-        'SELECT id FROM processors WHERE name = ?',
-        'INSERT INTO processors (name, manufacturer, core_count, process_node_nm) VALUES (?, ?, ?, ?)',
-        [entry.processor.name],
-        [
-          entry.processor.name,
-          entry.processor.manufacturer,
-          entry.processor.coreCount,
-          entry.processor.processNodeNm,
-        ]
-      );
-
-      const platformId = await getOrCreateId(
-        conn,
-        'SELECT id FROM platforms WHERE os = ?',
-        'INSERT INTO platforms (os) VALUES (?)',
-        [entry.platform]
-      );
-
-      const displayTechId = await getOrCreateId(
-        conn,
-        'SELECT id FROM display_tech WHERE type = ?',
-        'INSERT INTO display_tech (type) VALUES (?)',
-        [entry.displayType]
-      );
-
-      const [phoneResult] = await conn.execute(
-        `INSERT INTO phones
-          (brand_id, processor_id, platform_id, display_tech_id, model, screen_size, refresh_rate,
-           battery_capacity, fast_charge, wireless_charge, spec_score, user_rating)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          brandId,
-          processorId,
-          platformId,
-          displayTechId,
-          entry.model,
-          entry.phone.screenSize,
-          entry.phone.refreshRate,
-          entry.phone.batteryCapacity,
-          entry.phone.fastCharge,
-          entry.phone.wirelessCharge,
-          entry.phone.specScore,
-          entry.phone.userRating,
-        ]
-      );
-
-      const phoneId = phoneResult.insertId;
+    for (const m of mobiles) {
+      await conn.execute('INSERT IGNORE INTO brands (brand_name) VALUES (?)', [m.brand]);
+      const [[brand]] = await conn.execute('SELECT brand_id FROM brands WHERE brand_name = ?', [m.brand]);
 
       await conn.execute(
-        'INSERT INTO phone_variants (phone_id, ram, storage, price) VALUES (?, ?, ?, ?)',
-        [phoneId, entry.variant.ram, entry.variant.storage, entry.variant.price]
+        'INSERT IGNORE INTO processors (chipset_name, manufacturer, core_count, process_node_nm) VALUES (?, ?, ?, ?)',
+        [m.processor.name, m.processor.manufacturer, m.processor.cores, m.processor.node]
+      );
+      const [[processor]] = await conn.execute(
+        'SELECT processor_id FROM processors WHERE chipset_name = ?',
+        [m.processor.name]
       );
 
-      for (const camera of entry.cameras) {
-        await conn.execute(
-          'INSERT INTO phone_cameras (phone_id, placement, lens_type, megapixels, ois) VALUES (?, ?, ?, ?, ?)',
-          [phoneId, camera.placement, camera.lensType, camera.megapixels, camera.ois]
-        );
-      }
+      await conn.execute('INSERT IGNORE INTO platforms (platform_name) VALUES (?)', [m.os]);
+      const [[platform]] = await conn.execute(
+        'SELECT platform_id FROM platforms WHERE platform_name = ?',
+        [m.os]
+      );
 
-      console.log(`Inserted: ${entry.brand} ${entry.model}`);
+      await conn.execute('INSERT IGNORE INTO display_tech (panel_type) VALUES (?)', [m.display.type]);
+      const [[displayTech]] = await conn.execute(
+        'SELECT tech_id FROM display_tech WHERE panel_type = ?',
+        [m.display.type]
+      );
+
+      const [phoneRes] = await conn.execute(
+        `INSERT INTO phones
+          (brand_id, processor_id, tech_id, model_name, screen_size_inches, refresh_rate_hz,
+           battery_capacity_mah, wired_charging_watts, has_wireless_charging)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          brand.brand_id,
+          processor.processor_id,
+          displayTech.tech_id,
+          m.model,
+          m.display.size,
+          m.display.refresh,
+          m.battery,
+          m.charging,
+          m.wirelessCharging > 0 ? 1 : 0,
+        ]
+      );
+
+      const phoneId = phoneRes.insertId;
+
+      await conn.execute(
+        'INSERT INTO phone_variants (phone_id, platform_id, ram_gb, storage_gb, price_inr) VALUES (?, ?, ?, ?, ?)',
+        [phoneId, platform.platform_id, m.ram, m.storage, m.price]
+      );
+
+      await conn.execute(
+        "INSERT INTO phone_cameras (phone_id, placement, lens_role, megapixels, has_ois) VALUES (?, 'Rear', 'Primary', ?, ?)",
+        [phoneId, m.camera.rear, m.camera.ois]
+      );
+      await conn.execute(
+        "INSERT INTO phone_cameras (phone_id, placement, lens_role, megapixels, has_ois) VALUES (?, 'Front', 'Selfie', ?, 0)",
+        [phoneId, m.camera.front]
+      );
+
+      await conn.execute(
+        `INSERT INTO mobiles
+          (id, brand, model, price_inr, os, color_options, image_url, is_available)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
+        [
+          phoneId,
+          m.brand,
+          m.model,
+          m.price,
+          m.os,
+          JSON.stringify(m.colors),
+          m.imageUrl,
+        ]
+      );
+
+      await conn.execute(
+        `INSERT INTO cameras
+          (mobile_id, rear_main_mp, rear_ultra_wide_mp, rear_telephoto_mp, rear_cameras_count,
+           rear_aperture, ois, video_max_res, front_mp, front_aperture)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          phoneId,
+          m.camera.rear,
+          m.camera.ultraWide,
+          m.camera.telephoto,
+          m.camera.rearCount,
+          m.camera.rearAperture,
+          m.camera.ois,
+          m.camera.video,
+          m.camera.front,
+          m.camera.frontAperture,
+        ]
+      );
+
+      await conn.execute(
+        'INSERT INTO storage (mobile_id, internal_gb, is_expandable, max_expand_gb, storage_type) VALUES (?, ?, 0, NULL, ?)',
+        [phoneId, m.storage, m.storageType]
+      );
+
+      await conn.execute(
+        'INSERT INTO ram (mobile_id, ram_gb, ram_type) VALUES (?, ?, ?)',
+        [phoneId, m.ram, m.ramType]
+      );
+
+      await conn.execute(
+        `INSERT INTO display
+          (mobile_id, size_inches, resolution, panel_type, refresh_rate_hz, peak_brightness_nits, hdr_support)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          phoneId,
+          m.display.size,
+          m.display.resolution,
+          m.display.type,
+          m.display.refresh,
+          m.display.brightness,
+          m.display.hdr,
+        ]
+      );
+
+      await conn.execute(
+        'INSERT INTO battery (mobile_id, capacity_mah, fast_charge_watts, wireless_charge_w, reverse_charge) VALUES (?, ?, ?, ?, 0)',
+        [phoneId, m.battery, m.charging, m.wirelessCharging]
+      );
+
+      console.log(`Inserted: ${m.brand} ${m.model}`);
     }
 
     await conn.commit();

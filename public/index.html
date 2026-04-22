@@ -3,212 +3,310 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mobile Lens</title>
+  <title>MobileMart Store</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="page-shell">
-    <header class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Mobile Lens</p>
-        <h1>Compare phones, save favorites, and filter real specs from your SQL-backed catalog.</h1>
-        <p class="hero-text">
-          This dashboard talks directly to your backend routes for mobiles, comparison, authentication,
-          and wishlist management.
-        </p>
-        <div class="hero-actions">
-          <button id="loadCatalogBtn" class="primary-btn">Refresh catalog</button>
-          <button id="loadWishlistBtn" class="ghost-btn">Load wishlist</button>
-        </div>
+  <section id="loginGate" class="login-gate">
+    <div class="login-gate-card">
+      <div class="login-gate-brand">
+        <p class="gate-kicker">MobileMart</p>
+        <h2>Login</h2>
+        <p>Get access to search, filters, wishlist, and compare.</p>
       </div>
-      <div class="hero-panel">
-        <div class="stat-card">
-          <span class="stat-label">Health</span>
-          <strong id="healthStatus">Checking...</strong>
+
+      <div class="login-gate-panel">
+        <form id="gateLoginForm" class="auth-form">
+          <h3>Login</h3>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="name@example.com" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Password1" required>
+          </label>
+          <button type="submit" class="primary-btn full-width">Login to continue</button>
+        </form>
+
+        <div class="gate-alt-actions">
+          <button id="googleAuthBtn" type="button" class="google-btn full-width">Continue with Google</button>
+          <button id="showSignupBtn" type="button" class="text-btn gate-switch-btn">New here? Create an account</button>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">Catalog</span>
-          <strong id="catalogCount">0 phones</strong>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Compare queue</span>
-          <strong id="compareCount">0 selected</strong>
-        </div>
+
+        <form id="gateSignupForm" class="auth-form hidden">
+          <h3>Create account</h3>
+          <label>
+            <span>Name</span>
+            <input type="text" name="name" placeholder="Deepak" required>
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="deepak@example.com" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Password1" required>
+          </label>
+          <button type="submit" class="secondary-btn full-width">Create account</button>
+          <button id="showLoginBtn" type="button" class="text-btn gate-switch-btn">Already have an account? Login</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div id="appShell" class="app-shell hidden">
+    <header class="topbar">
+      <div class="brand-block">
+        <p class="brand-kicker">Marketplace</p>
+        <h1>MobileMart</h1>
+      </div>
+
+      <form id="heroSearchForm" class="searchbar">
+        <input id="heroSearchInput" type="search" name="search" placeholder="Search for phones, brands, chipsets and more">
+        <button type="submit" class="search-btn">Search</button>
+      </form>
+
+      <div class="topbar-actions">
+        <button id="authToggleBtn" class="nav-btn">Login</button>
+        <button id="loadWishlistBtn" class="nav-btn nav-btn-accent">Wishlist</button>
       </div>
     </header>
 
-    <main class="dashboard">
-      <section class="panel auth-panel">
-        <div class="section-heading">
-          <h2>Authentication</h2>
-          <p>Create an account or log in to manage your wishlist.</p>
-        </div>
+    <section class="category-rail">
+      <div id="brandRail" class="brand-rail"></div>
+      <div class="trending-box">
+        <span class="trending-label">Trending searches</span>
+        <div id="trendingSearches" class="trending-searches"></div>
+      </div>
+    </section>
 
-        <div class="auth-grid">
-          <form id="signupForm" class="card form-card">
-            <h3>Sign up</h3>
+    <section class="hero-banner">
+      <div class="hero-copy">
+        <span class="hero-tag">Big savings on premium phones</span>
+        <h2>Storefront browsing, live MySQL inventory, and fast filters in one shopping flow.</h2>
+        <p id="heroSummary">Loading live marketplace stats...</p>
+        <div class="hero-cta">
+          <button id="scrollToProductsBtn" class="primary-btn">Shop now</button>
+          <button id="refreshHomeBtn" class="secondary-btn">Refresh offers</button>
+        </div>
+      </div>
+      <div class="hero-cards">
+        <article class="mini-stat">
+          <span>Catalog</span>
+          <strong id="catalogCount">0 models</strong>
+        </article>
+        <article class="mini-stat">
+          <span>Best deal</span>
+          <strong id="dealHeadline">Loading</strong>
+        </article>
+        <article class="mini-stat">
+          <span>Session</span>
+          <strong id="sessionSummary">Guest shopper</strong>
+        </article>
+      </div>
+    </section>
+
+    <main class="page-grid">
+      <aside class="sidebar">
+        <section class="card sidebar-card">
+          <div class="section-head">
+            <h3>Filters</h3>
+            <button id="resetFiltersBtn" class="text-btn" type="button">Reset</button>
+          </div>
+          <form id="filtersForm" class="filters-form">
             <label>
-              <span>Name</span>
-              <input type="text" name="name" placeholder="Deepak" required>
+              <span>Brand</span>
+              <select name="brand" id="brandSelect">
+                <option value="">All brands</option>
+              </select>
             </label>
             <label>
-              <span>Email</span>
-              <input type="email" name="email" placeholder="deepak@example.com" required>
+              <span>OS</span>
+              <select name="os" id="osSelect">
+                <option value="">All OS</option>
+              </select>
             </label>
             <label>
-              <span>Password</span>
-              <input type="password" name="password" placeholder="Password1" required>
+              <span>Chip maker</span>
+              <select name="processor_brand" id="processorBrandSelect">
+                <option value="">All makers</option>
+              </select>
             </label>
-            <button type="submit" class="primary-btn">Create account</button>
+            <label>
+              <span>Display type</span>
+              <select name="panel_type" id="panelTypeSelect">
+                <option value="">All panels</option>
+              </select>
+            </label>
+            <label>
+              <span>Minimum price</span>
+              <input type="number" name="min_price" min="0" placeholder="10000">
+            </label>
+            <label>
+              <span>Maximum price</span>
+              <input type="number" name="max_price" min="0" placeholder="90000">
+            </label>
+            <label>
+              <span>Minimum RAM</span>
+              <input type="number" name="min_ram" min="1" placeholder="8">
+            </label>
+            <label>
+              <span>Minimum storage</span>
+              <input type="number" name="min_storage" min="1" placeholder="128">
+            </label>
+            <label>
+              <span>Minimum battery</span>
+              <input type="number" name="min_battery_mah" min="0" placeholder="5000">
+            </label>
+            <label>
+              <span>Minimum refresh</span>
+              <input type="number" name="min_refresh_rate" min="60" placeholder="120">
+            </label>
+            <label>
+              <span>Sort by</span>
+              <select name="sort_by">
+                <option value="price_inr">Price</option>
+                <option value="rear_main_mp">Camera</option>
+                <option value="ram_gb">RAM</option>
+                <option value="capacity_mah">Battery</option>
+                <option value="refresh_rate_hz">Refresh rate</option>
+              </select>
+            </label>
+            <label>
+              <span>Order</span>
+              <select name="sort_order">
+                <option value="asc">Low to high</option>
+                <option value="desc">High to low</option>
+              </select>
+            </label>
+            <button type="submit" class="primary-btn full-width">Apply filters</button>
           </form>
+          <div id="activeFilters" class="active-filters"></div>
+        </section>
 
-          <form id="loginForm" class="card form-card">
-            <h3>Log in</h3>
-            <label>
-              <span>Email</span>
-              <input type="email" name="email" placeholder="deepak@example.com" required>
-            </label>
-            <label>
-              <span>Password</span>
-              <input type="password" name="password" placeholder="Password1" required>
-            </label>
-            <button type="submit" class="primary-btn">Log in</button>
-          </form>
-        </div>
-
-        <div class="session-card card">
-          <div>
-            <h3>Session</h3>
-            <p id="sessionSummary">Not logged in.</p>
+        <section class="card sidebar-card wishlist-card-shell">
+          <div class="section-head">
+            <h3>Wishlist</h3>
+            <button id="loadProfileBtn" class="text-btn" type="button">Profile</button>
           </div>
-          <div class="session-actions">
-            <button id="loadProfileBtn" class="ghost-btn">Load profile</button>
-            <button id="logoutBtn" class="ghost-btn">Log out</button>
+          <div id="wishlistGrid" class="wishlist-list"></div>
+        </section>
+      </aside>
+
+      <section class="content-area">
+        <section class="deals-layout">
+          <article class="offer-banner offer-banner-primary">
+            <span>Rush deals</span>
+            <strong id="topDealTitle">Loading top deal...</strong>
+            <p id="topDealMeta">Pulling curated pricing highlights from MySQL.</p>
+          </article>
+          <article class="offer-banner offer-banner-secondary">
+            <span>Flagship lane</span>
+            <strong id="premiumTitle">Loading premium pick...</strong>
+            <p id="premiumMeta">Best spec-score phones in your catalog appear here.</p>
+          </article>
+        </section>
+
+        <section class="store-section">
+          <div class="section-head">
+            <h3>Top offers</h3>
+            <button class="text-btn" data-section-scroll="products" type="button">Browse all</button>
           </div>
-        </div>
-      </section>
+          <div id="topDealsGrid" class="horizontal-scroller"></div>
+        </section>
 
-      <section class="panel filters-panel">
-        <div class="section-heading">
-          <h2>Filter catalog</h2>
-          <p>Search across brands, price, RAM, display, processor, and camera specs.</p>
-        </div>
-
-        <form id="filtersForm" class="filters-grid card">
-          <label>
-            <span>Search</span>
-            <input type="text" name="search" placeholder="Galaxy, Snapdragon, iPhone">
-          </label>
-          <label>
-            <span>Brand</span>
-            <select name="brand" id="brandSelect">
-              <option value="">All brands</option>
-            </select>
-          </label>
-          <label>
-            <span>OS</span>
-            <select name="os" id="osSelect">
-              <option value="">All OS</option>
-            </select>
-          </label>
-          <label>
-            <span>Panel type</span>
-            <select name="panel_type" id="panelTypeSelect">
-              <option value="">All panels</option>
-            </select>
-          </label>
-          <label>
-            <span>Processor brand</span>
-            <select name="processor_brand" id="processorBrandSelect">
-              <option value="">All makers</option>
-            </select>
-          </label>
-          <label>
-            <span>Min price</span>
-            <input type="number" name="min_price" min="0" placeholder="50000">
-          </label>
-          <label>
-            <span>Max price</span>
-            <input type="number" name="max_price" min="0" placeholder="150000">
-          </label>
-          <label>
-            <span>Min RAM</span>
-            <input type="number" name="min_ram" min="1" placeholder="8">
-          </label>
-          <label>
-            <span>Min storage</span>
-            <input type="number" name="min_storage" min="1" placeholder="128">
-          </label>
-          <label>
-            <span>Min camera MP</span>
-            <input type="number" name="min_camera_mp" min="0" placeholder="50">
-          </label>
-          <label>
-            <span>Min battery</span>
-            <input type="number" name="min_battery_mah" min="0" placeholder="4500">
-          </label>
-          <label>
-            <span>Min refresh rate</span>
-            <input type="number" name="min_refresh_rate" min="60" placeholder="120">
-          </label>
-          <label>
-            <span>Sort by</span>
-            <select name="sort_by">
-              <option value="price_inr">Price</option>
-              <option value="rear_main_mp">Rear camera</option>
-              <option value="ram_gb">RAM</option>
-              <option value="capacity_mah">Battery</option>
-              <option value="refresh_rate_hz">Refresh rate</option>
-            </select>
-          </label>
-          <label>
-            <span>Sort order</span>
-            <select name="sort_order">
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
-            </select>
-          </label>
-          <div class="filter-actions">
-            <button type="submit" class="primary-btn">Apply filters</button>
-            <button type="button" id="resetFiltersBtn" class="ghost-btn">Reset</button>
+        <section class="store-section">
+          <div class="section-head">
+            <h3>Camera picks</h3>
+            <button class="text-btn" data-section-filter="rear_main_mp" type="button">Sort by camera</button>
           </div>
-        </form>
-      </section>
+          <div id="cameraPicksGrid" class="horizontal-scroller"></div>
+        </section>
 
-      <section class="panel comparison-panel">
-        <div class="section-heading">
-          <h2>Comparison</h2>
-          <p>Select up to four phones from the catalog, then compare the key specs side by side.</p>
-        </div>
-        <div class="card compare-toolbar">
-          <div id="selectedCompare" class="selected-compare">No phones selected yet.</div>
-          <div class="compare-actions">
-            <button id="compareBtn" class="primary-btn">Compare selected</button>
-            <button id="clearCompareBtn" class="ghost-btn">Clear selection</button>
+        <section id="productsSection" class="store-section products-section">
+          <div class="products-toolbar">
+            <div>
+              <h3>All mobiles</h3>
+              <p id="catalogMeta">Loading products...</p>
+            </div>
+            <div class="toolbar-stats">
+              <div class="toolbar-pill">
+                <span>Average price</span>
+                <strong id="avgPriceInsight">-</strong>
+              </div>
+              <div class="toolbar-pill">
+                <span>Battery leader</span>
+                <strong id="batteryInsight">-</strong>
+              </div>
+            </div>
           </div>
-        </div>
-        <div id="comparisonResults" class="comparison-results"></div>
-      </section>
-
-      <section class="panel catalog-panel">
-        <div class="section-heading">
-          <h2>Catalog</h2>
-          <p id="catalogMeta">Loading phones...</p>
-        </div>
-        <div id="mobileGrid" class="mobile-grid"></div>
-      </section>
-
-      <section class="panel wishlist-panel">
-        <div class="section-heading">
-          <h2>Wishlist</h2>
-          <p>Protected route powered by your JWT authentication.</p>
-        </div>
-        <div id="wishlistGrid" class="wishlist-grid"></div>
+          <div id="mobileGrid" class="product-grid"></div>
+        </section>
       </section>
     </main>
+  </div>
+
+  <div id="compareDrawer" class="floating-drawer hidden">
+    <div class="drawer-head">
+      <h3>Compare tray</h3>
+      <button id="clearCompareBtn" class="text-btn" type="button">Clear</button>
+    </div>
+    <div id="selectedCompare" class="compare-list">No phones selected.</div>
+    <div class="drawer-actions">
+      <button id="compareBtn" class="primary-btn full-width" type="button">Compare selected</button>
+    </div>
+    <div id="comparisonResults" class="compare-results"></div>
+  </div>
+
+  <div id="authModal" class="modal-shell hidden">
+    <div class="modal-card auth-modal-card">
+      <button id="closeAuthModalBtn" class="modal-close" type="button">X</button>
+      <div class="auth-columns">
+        <form id="loginForm" class="auth-form">
+          <h3>Login</h3>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="name@example.com" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Password1" required>
+          </label>
+          <button type="submit" class="primary-btn full-width">Login</button>
+        </form>
+
+        <form id="signupForm" class="auth-form">
+          <h3>Create account</h3>
+          <label>
+            <span>Name</span>
+            <input type="text" name="name" placeholder="Deepak" required>
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="deepak@example.com" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Password1" required>
+          </label>
+          <button type="submit" class="secondary-btn full-width">Sign up</button>
+        </form>
+      </div>
+      <div class="auth-foot">
+        <button id="logoutBtn" class="text-btn" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="productModal" class="modal-shell hidden">
+    <div class="modal-card product-modal-card">
+      <button id="closeProductModalBtn" class="modal-close" type="button">X</button>
+      <div id="productDetailContent" class="product-detail-content"></div>
+    </div>
   </div>
 
   <div id="toast" class="toast" aria-live="polite"></div>
