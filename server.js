@@ -5,6 +5,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import { fileURLToPath } from 'url';
 
 import { testConnection } from './config/database.js';
 import { connectRedis } from './config/redis.js';
@@ -17,6 +18,7 @@ import userRoutes from './routes/user.routes.js';
 dotenv.config();
 
 const app = express();
+const indexFilePath = fileURLToPath(new URL('./public/index.html', import.meta.url));
 
 // ── Security & Utility Middleware ────────────────────────────
 app.use(helmet());
@@ -36,6 +38,7 @@ app.use(cors({
 // Body parsing
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
 
 // Global rate limiter
 const globalLimiter = rateLimit({
@@ -65,6 +68,10 @@ app.get('/health', (req, res) => {
 app.use('/api/auth',    authRoutes);
 app.use('/api/mobiles', mobileRoutes);
 app.use('/api/users',   userRoutes);
+
+app.get('/', (req, res) => {
+  res.sendFile(indexFilePath);
+});
 
 // ── Error Handling ───────────────────────────────────────────
 app.use(notFound);

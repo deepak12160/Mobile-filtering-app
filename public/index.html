@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Lens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Mobile Lens</p>
+        <h1>Compare phones, save favorites, and filter real specs from your SQL-backed catalog.</h1>
+        <p class="hero-text">
+          This dashboard talks directly to your backend routes for mobiles, comparison, authentication,
+          and wishlist management.
+        </p>
+        <div class="hero-actions">
+          <button id="loadCatalogBtn" class="primary-btn">Refresh catalog</button>
+          <button id="loadWishlistBtn" class="ghost-btn">Load wishlist</button>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <div class="stat-card">
+          <span class="stat-label">Health</span>
+          <strong id="healthStatus">Checking...</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Catalog</span>
+          <strong id="catalogCount">0 phones</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Compare queue</span>
+          <strong id="compareCount">0 selected</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="panel auth-panel">
+        <div class="section-heading">
+          <h2>Authentication</h2>
+          <p>Create an account or log in to manage your wishlist.</p>
+        </div>
+
+        <div class="auth-grid">
+          <form id="signupForm" class="card form-card">
+            <h3>Sign up</h3>
+            <label>
+              <span>Name</span>
+              <input type="text" name="name" placeholder="Deepak" required>
+            </label>
+            <label>
+              <span>Email</span>
+              <input type="email" name="email" placeholder="deepak@example.com" required>
+            </label>
+            <label>
+              <span>Password</span>
+              <input type="password" name="password" placeholder="Password1" required>
+            </label>
+            <button type="submit" class="primary-btn">Create account</button>
+          </form>
+
+          <form id="loginForm" class="card form-card">
+            <h3>Log in</h3>
+            <label>
+              <span>Email</span>
+              <input type="email" name="email" placeholder="deepak@example.com" required>
+            </label>
+            <label>
+              <span>Password</span>
+              <input type="password" name="password" placeholder="Password1" required>
+            </label>
+            <button type="submit" class="primary-btn">Log in</button>
+          </form>
+        </div>
+
+        <div class="session-card card">
+          <div>
+            <h3>Session</h3>
+            <p id="sessionSummary">Not logged in.</p>
+          </div>
+          <div class="session-actions">
+            <button id="loadProfileBtn" class="ghost-btn">Load profile</button>
+            <button id="logoutBtn" class="ghost-btn">Log out</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel filters-panel">
+        <div class="section-heading">
+          <h2>Filter catalog</h2>
+          <p>Search across brands, price, RAM, display, processor, and camera specs.</p>
+        </div>
+
+        <form id="filtersForm" class="filters-grid card">
+          <label>
+            <span>Search</span>
+            <input type="text" name="search" placeholder="Galaxy, Snapdragon, iPhone">
+          </label>
+          <label>
+            <span>Brand</span>
+            <select name="brand" id="brandSelect">
+              <option value="">All brands</option>
+            </select>
+          </label>
+          <label>
+            <span>OS</span>
+            <select name="os" id="osSelect">
+              <option value="">All OS</option>
+            </select>
+          </label>
+          <label>
+            <span>Panel type</span>
+            <select name="panel_type" id="panelTypeSelect">
+              <option value="">All panels</option>
+            </select>
+          </label>
+          <label>
+            <span>Processor brand</span>
+            <select name="processor_brand" id="processorBrandSelect">
+              <option value="">All makers</option>
+            </select>
+          </label>
+          <label>
+            <span>Min price</span>
+            <input type="number" name="min_price" min="0" placeholder="50000">
+          </label>
+          <label>
+            <span>Max price</span>
+            <input type="number" name="max_price" min="0" placeholder="150000">
+          </label>
+          <label>
+            <span>Min RAM</span>
+            <input type="number" name="min_ram" min="1" placeholder="8">
+          </label>
+          <label>
+            <span>Min storage</span>
+            <input type="number" name="min_storage" min="1" placeholder="128">
+          </label>
+          <label>
+            <span>Min camera MP</span>
+            <input type="number" name="min_camera_mp" min="0" placeholder="50">
+          </label>
+          <label>
+            <span>Min battery</span>
+            <input type="number" name="min_battery_mah" min="0" placeholder="4500">
+          </label>
+          <label>
+            <span>Min refresh rate</span>
+            <input type="number" name="min_refresh_rate" min="60" placeholder="120">
+          </label>
+          <label>
+            <span>Sort by</span>
+            <select name="sort_by">
+              <option value="price_inr">Price</option>
+              <option value="rear_main_mp">Rear camera</option>
+              <option value="ram_gb">RAM</option>
+              <option value="capacity_mah">Battery</option>
+              <option value="refresh_rate_hz">Refresh rate</option>
+            </select>
+          </label>
+          <label>
+            <span>Sort order</span>
+            <select name="sort_order">
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </label>
+          <div class="filter-actions">
+            <button type="submit" class="primary-btn">Apply filters</button>
+            <button type="button" id="resetFiltersBtn" class="ghost-btn">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel comparison-panel">
+        <div class="section-heading">
+          <h2>Comparison</h2>
+          <p>Select up to four phones from the catalog, then compare the key specs side by side.</p>
+        </div>
+        <div class="card compare-toolbar">
+          <div id="selectedCompare" class="selected-compare">No phones selected yet.</div>
+          <div class="compare-actions">
+            <button id="compareBtn" class="primary-btn">Compare selected</button>
+            <button id="clearCompareBtn" class="ghost-btn">Clear selection</button>
+          </div>
+        </div>
+        <div id="comparisonResults" class="comparison-results"></div>
+      </section>
+
+      <section class="panel catalog-panel">
+        <div class="section-heading">
+          <h2>Catalog</h2>
+          <p id="catalogMeta">Loading phones...</p>
+        </div>
+        <div id="mobileGrid" class="mobile-grid"></div>
+      </section>
+
+      <section class="panel wishlist-panel">
+        <div class="section-heading">
+          <h2>Wishlist</h2>
+          <p>Protected route powered by your JWT authentication.</p>
+        </div>
+        <div id="wishlistGrid" class="wishlist-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
