@@ -1,7 +1,6 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const { pool } = require('../config/database');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { pool } from '../config/database.js';
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -22,25 +21,20 @@ const signup = async ({ name, email, password }) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const uuid = uuidv4();
 
   const [result] = await pool.execute(
-    'INSERT INTO users (uuid, name, email, password_hash) VALUES (?, ?, ?, ?)',
-    [uuid, name, email, passwordHash]
+    'INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)',
+    [name, email, passwordHash]
   );
 
   const userId = result.insertId;
   const { accessToken, refreshToken } = generateTokens(userId);
   const refreshHash = await bcrypt.hash(refreshToken, 8);
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await pool.execute(
-    'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-    [userId, refreshHash, expiresAt]
-  );
+  await pool.execute('INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)', [userId, refreshHash]);
 
   return {
-    user: { id: userId, uuid, name, email },
+    user: { id: userId, name, email },
     accessToken,
     refreshToken,
   };
@@ -48,7 +42,7 @@ const signup = async ({ name, email, password }) => {
 
 const login = async ({ email, password }) => {
   const [rows] = await pool.execute(
-    'SELECT id, uuid, name, email, password_hash FROM users WHERE email = ?',
+    'SELECT id, name, email, password_hash FROM users WHERE email = ?',
     [email]
   );
 
@@ -68,15 +62,11 @@ const login = async ({ email, password }) => {
 
   const { accessToken, refreshToken } = generateTokens(user.id);
   const refreshHash = await bcrypt.hash(refreshToken, 8);
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await pool.execute(
-    'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-    [user.id, refreshHash, expiresAt]
-  );
+  await pool.execute('INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)', [user.id, refreshHash]);
 
   return {
-    user: { id: user.id, uuid: user.uuid, name: user.name, email: user.email },
+    user: { id: user.id, name: user.name, email: user.email },
     accessToken,
     refreshToken,
   };
@@ -93,13 +83,13 @@ const refreshAccessToken = async (refreshToken) => {
   }
 
   const [tokens] = await pool.execute(
-    'SELECT id, token_hash FROM refresh_tokens WHERE user_id = ? AND expires_at > NOW()',
+    'SELECT id, token FROM refresh_tokens WHERE user_id = ?',
     [decoded.id]
   );
 
   let validToken = null;
   for (const token of tokens) {
-    if (await bcrypt.compare(refreshToken, token.token_hash)) {
+    if (await bcrypt.compare(refreshToken, token.token)) {
       validToken = token;
       break;
     }
@@ -115,12 +105,8 @@ const refreshAccessToken = async (refreshToken) => {
 
   const { accessToken, refreshToken: newRefreshToken } = generateTokens(decoded.id);
   const newHash = await bcrypt.hash(newRefreshToken, 8);
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await pool.execute(
-    'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-    [decoded.id, newHash, expiresAt]
-  );
+  await pool.execute('INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)', [decoded.id, newHash]);
 
   return { accessToken, refreshToken: newRefreshToken };
 };
@@ -129,16 +115,16 @@ const logout = async (userId, refreshToken) => {
   if (!refreshToken) return;
 
   const [tokens] = await pool.execute(
-    'SELECT id, token_hash FROM refresh_tokens WHERE user_id = ?',
+    'SELECT id, token FROM refresh_tokens WHERE user_id = ?',
     [userId]
   );
 
   for (const token of tokens) {
-    if (await bcrypt.compare(refreshToken, token.token_hash)) {
+    if (await bcrypt.compare(refreshToken, token.token)) {
       await pool.execute('DELETE FROM refresh_tokens WHERE id = ?', [token.id]);
       break;
     }
   }
 };
 
-module.exports = { signup, login, refreshAccessToken, logout };
+export { signup, login, refreshAccessToken, logout };

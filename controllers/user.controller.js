@@ -1,4 +1,4 @@
-const userService = require('../services/user.service');
+import * as userService from '../services/user.service.js';
 
 const getProfile = async (req, res, next) => {
   try {
@@ -37,4 +37,4 @@ const removeFromWishlist = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getProfile, updateProfile, getWishlist, addToWishlist, removeFromWishlist };
+export { getProfile, updateProfile, getWishlist, addToWishlist, removeFromWishlist };

@@ -1,7 +1,9 @@
-const router = require('express').Router();
-const ctrl   = require('../controllers/auth.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const { signupRules, loginRules, validate } = require('../middlewares/validation.middleware');
+import { Router } from 'express';
+import * as ctrl from '../controllers/auth.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { signupRules, loginRules, validate } from '../middlewares/validation.middleware.js';
+
+const router = Router();
 
 // POST /api/auth/signup
 router.post('/signup', signupRules, validate, ctrl.signup);
@@ -18,4 +20,4 @@ router.post('/logout', authenticate, ctrl.logout);
 // GET  /api/auth/me         (authenticated)
 router.get('/me', authenticate, ctrl.me);
 
-module.exports = router;
+export default router;

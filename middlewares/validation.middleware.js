@@ -1,4 +1,4 @@
-const { body, query, param, validationResult } = require('express-validator');
+import { body, query, param, validationResult } from 'express-validator';
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -37,6 +37,7 @@ const profileUpdateRules = [
 const filterRules = [
   query('brand').optional().isString().trim(),
   query('os').optional().isString().trim(),
+  query('search').optional().isString().trim(),
   query('min_price').optional().isFloat({ min: 0 }).toFloat(),
   query('max_price').optional().isFloat({ min: 0 }).toFloat(),
   query('min_ram').optional().isInt({ min: 1 }).toInt(),
@@ -76,7 +77,14 @@ const mobileIdParamRules = [
     .toInt(),
 ];
 
-module.exports = {
+const mobileLookupParamRules = [
+  param('id')
+    .isInt({ min: 1 })
+    .withMessage('Valid mobile ID required')
+    .toInt(),
+];
+
+export {
   validate,
   signupRules,
   loginRules,
@@ -84,4 +92,5 @@ module.exports = {
   filterRules,
   compareRules,
   mobileIdParamRules,
+  mobileLookupParamRules,
 };

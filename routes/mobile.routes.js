@@ -1,6 +1,13 @@
-const router = require('express').Router();
-const ctrl = require('../controllers/mobile.controller');
-const { filterRules, compareRules, validate } = require('../middlewares/validation.middleware');
+import { Router } from 'express';
+import * as ctrl from '../controllers/mobile.controller.js';
+import {
+  filterRules,
+  compareRules,
+  mobileLookupParamRules,
+  validate,
+} from '../middlewares/validation.middleware.js';
+
+const router = Router();
 
 // GET /api/mobiles/options  — available brands, os, panel types etc.
 router.get('/options', ctrl.filterOptions);
@@ -12,6 +19,6 @@ router.get('/compare', compareRules, validate, ctrl.compare);
 router.get('/', filterRules, validate, ctrl.filter);
 
 // GET /api/mobiles/:id
-router.get('/:id', ctrl.getById);
+router.get('/:id', mobileLookupParamRules, validate, ctrl.getById);
 
-module.exports = router;
+export default router;

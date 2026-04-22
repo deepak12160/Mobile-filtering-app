@@ -1,4 +1,4 @@
-const authService = require('../services/auth.service');
+import * as authService from '../services/auth.service.js';
 
 const signup = async (req, res, next) => {
   try {
@@ -37,4 +37,4 @@ const me = (req, res) => {
   res.json({ success: true, data: req.user });
 };
 
-module.exports = { signup, login, refresh, logout, me };
+export { signup, login, refresh, logout, me };

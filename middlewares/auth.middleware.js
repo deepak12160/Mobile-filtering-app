@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const { pool } = require('../config/database');
+import jwt from 'jsonwebtoken';
+import { pool } from '../config/database.js';
 
 const authenticate = async (req, res, next) => {
   try {
@@ -12,7 +12,7 @@ const authenticate = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const [rows] = await pool.execute(
-      'SELECT id, uuid, name, email FROM users WHERE id = ?',
+      'SELECT id, name, email, created_at FROM users WHERE id = ?',
       [decoded.id]
     );
 
@@ -38,7 +38,7 @@ const optionalAuth = async (req, res, next) => {
       const token = authHeader.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const [rows] = await pool.execute(
-        'SELECT id, uuid, name, email FROM users WHERE id = ?',
+        'SELECT id, name, email, created_at FROM users WHERE id = ?',
         [decoded.id]
       );
 
@@ -49,4 +49,4 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
-module.exports = { authenticate, optionalAuth };
+export { authenticate, optionalAuth };

@@ -1,11 +1,13 @@
-const router = require('express').Router();
-const ctrl = require('../controllers/user.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
-const {
+import { Router } from 'express';
+import * as ctrl from '../controllers/user.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import {
   validate,
   profileUpdateRules,
   mobileIdParamRules,
-} = require('../middlewares/validation.middleware');
+} from '../middlewares/validation.middleware.js';
+
+const router = Router();
 
 // All user routes are protected
 router.use(authenticate);
@@ -29,4 +31,4 @@ router.post('/wishlist/:mobileId', mobileIdParamRules, validate, ctrl.addToWishl
 // DELETE /api/users/wishlist/:mobileId
 router.delete('/wishlist/:mobileId', mobileIdParamRules, validate, ctrl.removeFromWishlist);
 
-module.exports = router;
+export default router;

@@ -18,4 +18,4 @@ const notFound = (res, message = 'Resource not found') =>
 const unauthorized = (res, message = 'Unauthorized') =>
   fail(res, message, 401);
 
-module.exports = { success, created, paginated, fail, notFound, unauthorized };
+export { success, created, paginated, fail, notFound, unauthorized };

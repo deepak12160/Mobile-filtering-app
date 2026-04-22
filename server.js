@@ -1,18 +1,20 @@
-require('dotenv').config();
-const express    = require('express');
-const helmet     = require('helmet');
-const cors       = require('cors');
-const morgan     = require('morgan');
-const compression = require('compression');
-const rateLimit  = require('express-rate-limit');
+import dotenv from 'dotenv';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import morgan from 'morgan';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 
-const { testConnection }           = require('./config/database');
-const { connectRedis }             = require('./config/redis');
-const { errorHandler, notFound }   = require('./middlewares/error.middleware');
+import { testConnection } from './config/database.js';
+import { connectRedis } from './config/redis.js';
+import { errorHandler, notFound } from './middlewares/error.middleware.js';
 
-const authRoutes   = require('./routes/auth.routes');
-const mobileRoutes = require('./routes/mobile.routes');
-const userRoutes   = require('./routes/user.routes');
+import authRoutes from './routes/auth.routes.js';
+import mobileRoutes from './routes/mobile.routes.js';
+import userRoutes from './routes/user.routes.js';
+
+dotenv.config();
 
 const app = express();
 
@@ -99,4 +101,4 @@ const start = async () => {
 
 start();
 
-module.exports = app;
+export default app;

@@ -1,4 +1,4 @@
-const mobileService = require('../services/mobile.service');
+import * as mobileService from '../services/mobile.service.js';
 
 const filter = async (req, res, next) => {
   try {
@@ -37,4 +37,4 @@ const filterOptions = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { filter, getById, compare, filterOptions };
+export { filter, getById, compare, filterOptions };

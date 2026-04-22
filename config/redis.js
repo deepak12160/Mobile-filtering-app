@@ -1,5 +1,7 @@
-const { createClient } = require('redis');
-require('dotenv').config();
+import { createClient } from 'redis';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 let redisClient = null;
 let isRedisConnected = false;
@@ -83,4 +85,4 @@ const deleteCache = async (pattern) => {
   }
 };
 
-module.exports = { connectRedis, getCache, setCache, deleteCache };
+export { connectRedis, getCache, setCache, deleteCache };
