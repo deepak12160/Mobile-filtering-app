@@ -1,4 +1,9 @@
 node_modules/
 .env
 *.log
+dist/
 .DS_Store
+.vscode/
+
+# Only ignore if you don't want to seed every time
+# database/data.sql

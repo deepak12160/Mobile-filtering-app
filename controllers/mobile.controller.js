@@ -1,13 +1,10 @@
 import * as mobileService from '../services/mobile.service.js';
+import { paginated } from '../utils/response.js';
 
 const filter = async (req, res, next) => {
   try {
     const result = await mobileService.filterMobiles(req.query);
-    res.json({
-      success: true,
-      ...(result.fromCache && { cached: true }),
-      ...result,
-    });
+    return paginated(res, result.data, result.pagination, 'Mobiles fetched');
   } catch (err) { next(err); }
 };
 

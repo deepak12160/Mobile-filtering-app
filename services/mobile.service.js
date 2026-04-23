@@ -25,8 +25,8 @@ const BASE_SELECT = `
     p.fast_charge AS fast_charge_watts,
     p.wireless_charge AS wireless_charge_w
   FROM phones p
-  JOIN brands b ON b.id = p.brand_id
-  JOIN processors pr ON pr.id = p.processor_id
+  LEFT JOIN brands b ON b.id = p.brand_id
+  LEFT JOIN processors pr ON pr.id = p.processor_id
   LEFT JOIN display_tech dt ON dt.id = p.display_tech_id
   LEFT JOIN platforms pl ON pl.id = p.platform_id
   LEFT JOIN phone_variants pv ON pv.phone_id = p.id
@@ -54,32 +54,32 @@ const buildWhereClause = (filters) => {
     params.push(`%${filters.os}%`);
   }
 
-  if (filters.min_price !== undefined) {
+  if (filters.min_price !== undefined && filters.min_price !== '') {
     conditions.push('pv.price >= ?');
     params.push(filters.min_price);
   }
 
-  if (filters.max_price !== undefined) {
+  if (filters.max_price !== undefined && filters.max_price !== '') {
     conditions.push('pv.price <= ?');
     params.push(filters.max_price);
   }
 
-  if (filters.min_ram !== undefined) {
+  if (filters.min_ram !== undefined && filters.min_ram !== '') {
     conditions.push('pv.ram >= ?');
     params.push(filters.min_ram);
   }
 
-  if (filters.max_ram !== undefined) {
+  if (filters.max_ram !== undefined && filters.max_ram !== '') {
     conditions.push('pv.ram <= ?');
     params.push(filters.max_ram);
   }
 
-  if (filters.min_storage !== undefined) {
+  if (filters.min_storage !== undefined && filters.min_storage !== '') {
     conditions.push('pv.storage >= ?');
     params.push(filters.min_storage);
   }
 
-  if (filters.min_camera_mp !== undefined) {
+  if (filters.min_camera_mp !== undefined && filters.min_camera_mp !== '') {
     conditions.push('rear.megapixels >= ?');
     params.push(filters.min_camera_mp);
   }
@@ -126,8 +126,15 @@ const buildWhereClause = (filters) => {
 
   if (filters.search) {
     const term = `%${filters.search}%`;
-    conditions.push('(b.name LIKE ? OR p.model LIKE ? OR pr.name LIKE ?)');
-    params.push(term, term, term);
+    conditions.push(`(
+      b.name LIKE ? OR 
+      p.model LIKE ? OR 
+      pr.name LIKE ? OR 
+      pr.manufacturer LIKE ? OR 
+      pl.os LIKE ? OR 
+      CAST(rear.megapixels AS CHAR) LIKE ?
+    )`);
+    params.push(term, term, term, term, term, term);
   }
 
   return {
@@ -162,31 +169,29 @@ const filterMobiles = async (rawFilters) => {
   const countSql = `
     SELECT COUNT(*) AS total
     FROM (
-      SELECT p.id, pv.id
+      SELECT p.id 
       FROM phones p
-      JOIN brands b ON b.id = p.brand_id
-      JOIN processors pr ON pr.id = p.processor_id
+      LEFT JOIN brands b ON b.id = p.brand_id
+      LEFT JOIN processors pr ON pr.id = p.processor_id
       LEFT JOIN display_tech dt ON dt.id = p.display_tech_id
       LEFT JOIN platforms pl ON pl.id = p.platform_id
       LEFT JOIN phone_variants pv ON pv.phone_id = p.id
-      LEFT JOIN phone_cameras rear
-        ON rear.phone_id = p.id
-       AND rear.placement = 'rear'
-       AND rear.lens_type = 'primary'
       ${where}
+      GROUP BY p.id
     ) AS filtered
   `;
 
   const dataSql = `
     ${BASE_SELECT}
     ${where}
+    GROUP BY p.id
     ORDER BY ${orderCol} ${order}, p.id ASC, pv.id ASC
     LIMIT ? OFFSET ?
   `;
 
   const [[countRows], [rows]] = await Promise.all([
-    pool.execute(countSql, params),
-    pool.execute(dataSql, [...params, limit, offset]),
+    pool.query(countSql, params),
+    pool.query(dataSql, [...params, limit, offset]),
   ]);
 
   const total = countRows[0].total;
@@ -209,7 +214,7 @@ const getMobileById = async (id) => {
   const cached = await getCache(cacheKey);
   if (cached) return cached;
 
-  const [rows] = await pool.execute(
+  const [rows] = await pool.query(
     `
       ${BASE_SELECT}
       WHERE p.id = ?
@@ -232,13 +237,13 @@ const compareMobiles = async (ids) => {
   if (cached) return cached;
 
   const placeholders = normalizedIds.map(() => '?').join(',');
-  const [rows] = await pool.execute(
+  const [rows] = await pool.query(
     `
       ${BASE_SELECT}
       WHERE p.id IN (${placeholders})
-      ORDER BY FIELD(p.id, ${placeholders}), pv.price ASC
+      ORDER BY FIELD(p.id, ${normalizedIds.join(',')}), pv.price ASC
     `,
-    [...normalizedIds, ...normalizedIds]
+    normalizedIds
   );
 
   const mobiles = normalizedIds
@@ -272,15 +277,15 @@ const getFilterOptions = async () => {
   if (cached) return cached;
 
   const queries = {
-    brands: pool.execute('SELECT DISTINCT name AS brand FROM brands ORDER BY name'),
-    os: pool.execute('SELECT DISTINCT os FROM platforms WHERE os IS NOT NULL ORDER BY os'),
-    panel_types: pool.execute('SELECT DISTINCT type AS panel_type FROM display_tech ORDER BY type'),
-    processor_brands: pool.execute(
+    brands: pool.query('SELECT DISTINCT name AS brand FROM brands ORDER BY name'),
+    os: pool.query('SELECT DISTINCT os FROM platforms WHERE os IS NOT NULL ORDER BY os'),
+    panel_types: pool.query('SELECT DISTINCT type AS panel_type FROM display_tech ORDER BY type'),
+    processor_brands: pool.query(
       'SELECT DISTINCT manufacturer FROM processors WHERE manufacturer IS NOT NULL ORDER BY manufacturer'
     ),
-    price_range: pool.execute('SELECT MIN(price) AS min, MAX(price) AS max FROM phone_variants'),
-    ram_options: pool.execute('SELECT DISTINCT ram AS ram_gb FROM phone_variants ORDER BY ram'),
-    storage_options: pool.execute(
+    price_range: pool.query('SELECT MIN(price) AS min, MAX(price) AS max FROM phone_variants'),
+    ram_options: pool.query('SELECT DISTINCT ram AS ram_gb FROM phone_variants ORDER BY ram'),
+    storage_options: pool.query(
       'SELECT DISTINCT storage AS internal_gb FROM phone_variants ORDER BY storage'
     ),
   };

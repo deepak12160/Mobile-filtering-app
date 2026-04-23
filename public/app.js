@@ -207,7 +207,7 @@ const readFilters = () => {
 };
 
 const renderSession = () => {
-  const summary = state.auth.user ? `${state.auth.user.name}` : 'Guest shopper';
+  const summary = state.auth.user ? `${state.auth.user.name}` : 'Platform Guest';
   el.sessionSummary.textContent = summary;
   el.authToggleBtn.textContent = state.auth.user ? 'Account' : 'Login';
   setAuthenticatedView(Boolean(state.auth.accessToken));
@@ -237,9 +237,9 @@ const renderHome = () => {
   const topDeal = home.sections?.topDeals?.[0];
   const premiumPick = home.sections?.premiumPicks?.[0];
 
-  el.heroSummary.textContent = `${stats.total_models || 0} phones from ${stats.total_brands || 0} brands, with prices from ${formatPrice(stats.min_price)} to ${formatPrice(stats.max_price)}.`;
+  el.heroSummary.textContent = `Precision Analytics: ${stats.total_models || 0} devices across ${stats.total_brands || 0} manufacturers. Data ranges from ${formatPrice(stats.min_price)} to ${formatPrice(stats.max_price)}.`;
   el.catalogCount.textContent = `${stats.total_models || 0} models`;
-  el.dealHeadline.textContent = topDeal ? `${topDeal.brand} ${topDeal.model}` : 'No deals yet';
+  el.dealHeadline.textContent = topDeal ? `${topDeal.brand} ${topDeal.model}` : 'Database active';
   el.topDealTitle.textContent = topDeal ? `${topDeal.brand} ${topDeal.model}` : 'No top deal';
   el.topDealMeta.textContent = topDeal ? `Starts at ${formatPrice(topDeal.price_inr)} with ${topDeal.ram_gb || 'N/A'} GB RAM.` : 'No top deal data available.';
   el.premiumTitle.textContent = premiumPick ? `${premiumPick.brand} ${premiumPick.model}` : 'No premium pick';
@@ -512,14 +512,25 @@ const loadHome = async () => {
 
 const loadCatalog = async () => {
   if (!requireAuth('Login first to use search and filters.')) return;
-  const params = readFilters();
-  const searchValue = el.heroSearchInput.value.trim();
-  if (searchValue && !params.get('search')) params.set('search', searchValue);
 
-  const result = await api(`/api/mobiles?${params.toString()}`);
-  state.mobiles = result.data;
-  renderMobiles();
-  renderCompare();
+  try {
+    const searchValue = el.heroSearchInput.value.trim();
+    const params = readFilters();
+    
+    // Combine hero search with sidebar filters
+    if (searchValue && !params.get('search')) {
+      params.set('search', searchValue);
+    }
+
+    const result = await api(`/api/mobiles?${params.toString()}`);
+    
+    // Backend controller uses standardized 'paginated' helper, data is at result.data
+    state.mobiles = result.data || (Array.isArray(result) ? result : []);
+    renderMobiles();
+    renderCompare();
+  } catch (error) {
+    showToast(error.message || 'Filter request failed.', true);
+  }
 };
 
 const loadWishlist = async () => {
@@ -708,6 +719,7 @@ document.addEventListener('click', async (event) => {
 
 el.heroSearchForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  el.filtersForm.reset(); // Clear sidebar filters when starting a fresh hero search
   await loadCatalog();
 });
 
@@ -724,7 +736,7 @@ el.resetFiltersBtn.addEventListener('click', async () => {
 
 el.refreshHomeBtn.addEventListener('click', async () => {
   await loadHome();
-  showToast('Marketplace offers refreshed.');
+  showToast('Device database updated.');
 });
 
 el.scrollToProductsBtn.addEventListener('click', () => {

@@ -1,6 +1,7 @@
+import 'dotenv/config';
+import { pool } from '../config/database.js';
 
-require('dotenv').config();
-const { pool } = require('../config/database');
+// Rest of your seeding logic...
 
 const mobiles = [
   {
@@ -57,6 +58,42 @@ const mobiles = [
     storageType: 'UFS 4.0',
     ramType: 'LPDDR5X',
   },
+  {
+    brand: 'Google',
+    model: 'Pixel 8 Pro',
+    price: 106999,
+    ram: 12,
+    storage: 128,
+    battery: 5050,
+    charging: 30,
+    wirelessCharging: 23,
+    os: 'Android 14',
+    colors: ['Obsidian', 'Porcelain', 'Bay'],
+    imageUrl: 'https://images.example.com/pixel-8-pro.jpg',
+    display: { size: 6.7, refresh: 120, type: 'OLED', resolution: '2992x1344', brightness: 2400, hdr: 1 },
+    processor: { name: 'Tensor G3', manufacturer: 'Google', cores: 9, node: 4 },
+    camera: { rear: 50, ultraWide: 48, telephoto: 48, front: 10.5, rearCount: 3, ois: 1, rearAperture: 'f/1.68', frontAperture: 'f/2.2', video: '4K' },
+    storageType: 'UFS 3.1',
+    ramType: 'LPDDR5X',
+  },
+  {
+    brand: 'Xiaomi',
+    model: '14 Ultra',
+    price: 99999,
+    ram: 16,
+    storage: 512,
+    battery: 5000,
+    charging: 90,
+    wirelessCharging: 80,
+    os: 'HyperOS',
+    colors: ['Black', 'White'],
+    imageUrl: 'https://images.example.com/xiaomi-14-ultra.jpg',
+    display: { size: 6.73, refresh: 120, type: 'AMOLED', resolution: '3200x1440', brightness: 3000, hdr: 1 },
+    processor: { name: 'Snapdragon 8 Gen 3', manufacturer: 'Qualcomm', cores: 8, node: 4 },
+    camera: { rear: 50, ultraWide: 50, telephoto: 50, front: 32, rearCount: 4, ois: 1, rearAperture: 'f/1.63', frontAperture: 'f/2.0', video: '8K' },
+    storageType: 'UFS 4.0',
+    ramType: 'LPDDR5X',
+  },
 ];
 
 const seed = async () => {
@@ -68,13 +105,6 @@ const seed = async () => {
     await conn.query('DELETE FROM user_wishlist');
     await conn.query('DELETE FROM refresh_tokens');
 
-    await conn.query('DELETE FROM battery');
-    await conn.query('DELETE FROM display');
-    await conn.query('DELETE FROM ram');
-    await conn.query('DELETE FROM storage');
-    await conn.query('DELETE FROM cameras');
-    await conn.query('DELETE FROM mobiles');
-
     await conn.query('DELETE FROM phone_cameras');
     await conn.query('DELETE FROM phone_variants');
     await conn.query('DELETE FROM phones');
@@ -84,126 +114,65 @@ const seed = async () => {
     await conn.query('DELETE FROM brands');
 
     for (const m of mobiles) {
-      await conn.execute('INSERT IGNORE INTO brands (brand_name) VALUES (?)', [m.brand]);
-      const [[brand]] = await conn.execute('SELECT brand_id FROM brands WHERE brand_name = ?', [m.brand]);
+      await conn.execute('INSERT IGNORE INTO brands (name) VALUES (?)', [m.brand]);
+      const [[brand]] = await conn.execute('SELECT id FROM brands WHERE name = ?', [m.brand]);
 
       await conn.execute(
-        'INSERT IGNORE INTO processors (chipset_name, manufacturer, core_count, process_node_nm) VALUES (?, ?, ?, ?)',
+        'INSERT IGNORE INTO processors (name, manufacturer, core_count, process_node_nm) VALUES (?, ?, ?, ?)',
         [m.processor.name, m.processor.manufacturer, m.processor.cores, m.processor.node]
       );
       const [[processor]] = await conn.execute(
-        'SELECT processor_id FROM processors WHERE chipset_name = ?',
+        'SELECT id FROM processors WHERE name = ?',
         [m.processor.name]
       );
 
-      await conn.execute('INSERT IGNORE INTO platforms (platform_name) VALUES (?)', [m.os]);
+      await conn.execute('INSERT IGNORE INTO platforms (os) VALUES (?)', [m.os]);
       const [[platform]] = await conn.execute(
-        'SELECT platform_id FROM platforms WHERE platform_name = ?',
+        'SELECT id FROM platforms WHERE os = ?',
         [m.os]
       );
 
-      await conn.execute('INSERT IGNORE INTO display_tech (panel_type) VALUES (?)', [m.display.type]);
+      await conn.execute('INSERT IGNORE INTO display_tech (type) VALUES (?)', [m.display.type]);
       const [[displayTech]] = await conn.execute(
-        'SELECT tech_id FROM display_tech WHERE panel_type = ?',
+        'SELECT id FROM display_tech WHERE type = ?',
         [m.display.type]
       );
 
       const [phoneRes] = await conn.execute(
         `INSERT INTO phones
-          (brand_id, processor_id, tech_id, model_name, screen_size_inches, refresh_rate_hz,
-           battery_capacity_mah, wired_charging_watts, has_wireless_charging)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (brand_id, processor_id, display_tech_id, platform_id, model, screen_size, refresh_rate,
+           battery_capacity, fast_charge, wireless_charge, spec_score, user_rating)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          brand.brand_id,
-          processor.processor_id,
-          displayTech.tech_id,
+          brand.id,
+          processor.id,
+          displayTech.id,
+          platform.id,
           m.model,
           m.display.size,
           m.display.refresh,
           m.battery,
           m.charging,
           m.wirelessCharging > 0 ? 1 : 0,
+          Math.floor(Math.random() * 20) + 80, // Random spec score for demo
+          (Math.random() * 1 + 4).toFixed(1),  // Random rating 4.0-5.0
         ]
       );
 
       const phoneId = phoneRes.insertId;
 
       await conn.execute(
-        'INSERT INTO phone_variants (phone_id, platform_id, ram_gb, storage_gb, price_inr) VALUES (?, ?, ?, ?, ?)',
-        [phoneId, platform.platform_id, m.ram, m.storage, m.price]
+        'INSERT INTO phone_variants (phone_id, ram, storage, price) VALUES (?, ?, ?, ?)',
+        [phoneId, m.ram, m.storage, m.price]
       );
 
       await conn.execute(
-        "INSERT INTO phone_cameras (phone_id, placement, lens_role, megapixels, has_ois) VALUES (?, 'Rear', 'Primary', ?, ?)",
+        "INSERT INTO phone_cameras (phone_id, placement, lens_type, megapixels, ois) VALUES (?, 'rear', 'primary', ?, ?)",
         [phoneId, m.camera.rear, m.camera.ois]
       );
       await conn.execute(
-        "INSERT INTO phone_cameras (phone_id, placement, lens_role, megapixels, has_ois) VALUES (?, 'Front', 'Selfie', ?, 0)",
+        "INSERT INTO phone_cameras (phone_id, placement, lens_type, megapixels, ois) VALUES (?, 'front', 'selfie', ?, 0)",
         [phoneId, m.camera.front]
-      );
-
-      await conn.execute(
-        `INSERT INTO mobiles
-          (id, brand, model, price_inr, os, color_options, image_url, is_available)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
-        [
-          phoneId,
-          m.brand,
-          m.model,
-          m.price,
-          m.os,
-          JSON.stringify(m.colors),
-          m.imageUrl,
-        ]
-      );
-
-      await conn.execute(
-        `INSERT INTO cameras
-          (mobile_id, rear_main_mp, rear_ultra_wide_mp, rear_telephoto_mp, rear_cameras_count,
-           rear_aperture, ois, video_max_res, front_mp, front_aperture)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          phoneId,
-          m.camera.rear,
-          m.camera.ultraWide,
-          m.camera.telephoto,
-          m.camera.rearCount,
-          m.camera.rearAperture,
-          m.camera.ois,
-          m.camera.video,
-          m.camera.front,
-          m.camera.frontAperture,
-        ]
-      );
-
-      await conn.execute(
-        'INSERT INTO storage (mobile_id, internal_gb, is_expandable, max_expand_gb, storage_type) VALUES (?, ?, 0, NULL, ?)',
-        [phoneId, m.storage, m.storageType]
-      );
-
-      await conn.execute(
-        'INSERT INTO ram (mobile_id, ram_gb, ram_type) VALUES (?, ?, ?)',
-        [phoneId, m.ram, m.ramType]
-      );
-
-      await conn.execute(
-        `INSERT INTO display
-          (mobile_id, size_inches, resolution, panel_type, refresh_rate_hz, peak_brightness_nits, hdr_support)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          phoneId,
-          m.display.size,
-          m.display.resolution,
-          m.display.type,
-          m.display.refresh,
-          m.display.brightness,
-          m.display.hdr,
-        ]
-      );
-
-      await conn.execute(
-        'INSERT INTO battery (mobile_id, capacity_mah, fast_charge_watts, wireless_charge_w, reverse_charge) VALUES (?, ?, ?, ?, 0)',
-        [phoneId, m.battery, m.charging, m.wirelessCharging]
       );
 
       console.log(`Inserted: ${m.brand} ${m.model}`);

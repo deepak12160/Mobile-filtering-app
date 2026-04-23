@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 const getProfile = async (userId) => {
-  const [rows] = await pool.execute(
+  const [rows] = await pool.query(
     'SELECT id, name, email, created_at FROM users WHERE id = ?',
     [userId]
   );
@@ -10,14 +10,14 @@ const getProfile = async (userId) => {
 };
 
 const updateProfile = async (userId, { name }) => {
-  await pool.execute('UPDATE users SET name = ? WHERE id = ?', [name, userId]);
+  await pool.query('UPDATE users SET name = ? WHERE id = ?', [name, userId]);
   return getProfile(userId);
 };
 
 const getWishlist = async (userId) => {
-  const [rows] = await pool.execute(
-    `SELECT
-       uw.id AS wishlist_id,
+  const [rows] = await pool.query(
+    `SELECT 
+       MAX(uw.id) AS wishlist_id,
        p.id,
        b.name AS brand,
        p.model,
@@ -37,7 +37,8 @@ const getWishlist = async (userId) => {
       AND rear.placement = 'rear'
       AND rear.lens_type = 'primary'
      WHERE uw.user_id = ?
-     ORDER BY uw.id DESC, pv.price ASC`,
+     GROUP BY p.id, b.name, p.model, pl.os, p.battery_capacity
+     ORDER BY wishlist_id DESC`,
     [userId]
   );
 
@@ -45,10 +46,13 @@ const getWishlist = async (userId) => {
 };
 
 const addToWishlist = async (userId, phoneId) => {
-  const [[phoneRows], [existingRows]] = await Promise.all([
-    pool.execute('SELECT id FROM phones WHERE id = ?', [phoneId]),
-    pool.execute('SELECT id FROM user_wishlist WHERE user_id = ? AND phone_id = ?', [userId, phoneId]),
+  const [phoneRes, existingRes] = await Promise.all([
+    pool.query('SELECT id FROM phones WHERE id = ?', [phoneId]),
+    pool.query('SELECT id FROM user_wishlist WHERE user_id = ? AND phone_id = ?', [userId, phoneId]),
   ]);
+
+  const phoneRows = phoneRes[0];
+  const existingRows = existingRes[0];
 
   if (!phoneRows.length) {
     const err = new Error('Phone not found');
@@ -60,12 +64,12 @@ const addToWishlist = async (userId, phoneId) => {
     return { added: false, message: 'Already in wishlist', phoneId };
   }
 
-  await pool.execute('INSERT INTO user_wishlist (user_id, phone_id) VALUES (?, ?)', [userId, phoneId]);
+  await pool.query('INSERT INTO user_wishlist (user_id, phone_id) VALUES (?, ?)', [userId, phoneId]);
   return { added: true, phoneId };
 };
 
 const removeFromWishlist = async (userId, phoneId) => {
-  const [result] = await pool.execute(
+  const [result] = await pool.query(
     'DELETE FROM user_wishlist WHERE user_id = ? AND phone_id = ?',
     [userId, phoneId]
   );

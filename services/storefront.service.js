@@ -40,7 +40,7 @@ const dedupeByPhone = (rows) => {
 };
 
 const getHeroStats = async () => {
-  const [rows] = await pool.execute(`
+  const [rows] = await pool.query(`
     SELECT
       COUNT(DISTINCT p.id) AS total_models,
       COUNT(DISTINCT b.id) AS total_brands,
@@ -55,7 +55,7 @@ const getHeroStats = async () => {
 };
 
 const getBrandTiles = async () => {
-  const [rows] = await pool.execute(`
+  const [rows] = await pool.query(`
     SELECT
       b.name AS brand,
       COUNT(DISTINCT p.id) AS total_models,
@@ -72,7 +72,7 @@ const getBrandTiles = async () => {
 };
 
 const getDealsSection = async (orderBy, limit) => {
-  const [rows] = await pool.execute(
+  const [rows] = await pool.query(
     `
       ${PRODUCT_CARD_SELECT}
       ORDER BY ${orderBy}, pv.price ASC, p.id ASC
@@ -85,7 +85,7 @@ const getDealsSection = async (orderBy, limit) => {
 };
 
 const getTrendingSearches = async () => {
-  const [rows] = await pool.execute(`
+  const [rows] = await pool.query(`
     SELECT
       b.name AS label
     FROM brands b
@@ -139,7 +139,7 @@ const getStorefrontProduct = async (id) => {
   const cached = await getCache(cacheKey);
   if (cached) return cached;
 
-  const [rows] = await pool.execute(
+  const [rows] = await pool.query(
     `
       SELECT
         p.id,
@@ -197,7 +197,7 @@ const getStorefrontProduct = async (id) => {
       price_inr: row.price_inr,
     }));
 
-  const [similarRows] = await pool.execute(
+  const [similarRows] = await pool.query(
     `
       ${PRODUCT_CARD_SELECT}
       WHERE p.brand_id = (

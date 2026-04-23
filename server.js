@@ -27,10 +27,17 @@ app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // CORS
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',');
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
+  : [];
+
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    // Allow if no origin (like mobile apps/curl) or if origin is in whitelist
+    // In development, you might also want to allow localhost explicitly
+    if (!origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV !== 'production' && origin.includes('localhost'))) {
+      return cb(null, true);
+    }
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -103,11 +110,8 @@ const start = async () => {
       process.exit(1);
     }
 
-    console.error('Server failed to start:', err.message);
-    process.exit(1);
+    console.error('Server error:', err);
   });
 };
 
 start();
-
-export default app;
